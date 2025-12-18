@@ -14,9 +14,11 @@ int circley = 64;
 // Hardware SPI
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
+
 void setup() {
   Serial.begin(115200);
-
+  pinMode(14, INPUT_PULLDOWN);
+  pinMode(27, INPUT_PULLDOWN);
   // Initialize SPI explicitly (recommended for ESP32)
   SPI.begin(18, 19, 23, TFT_CS);
 
@@ -34,5 +36,16 @@ void setup() {
 }
 
 void loop() {
-  if 
+  tft.fillScreen(ST7735_BLACK);
+  tft.setCursor(0,0);
+  tft.println("ESP32 + ST7735");
+  tft.drawCircle(circlex, circley, 3, ST7735_WHITE);
+  if (digitalRead(14)) {
+    circlex++;
+    Serial.print("dd");
+  }
+  if (digitalRead(27)) {
+    circley++;
+    Serial.print("yy");
+  }
 }
