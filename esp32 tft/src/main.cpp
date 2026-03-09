@@ -1,51 +1,67 @@
 #include <Arduino.h>
-#include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
+#include <String.h>
 
-// Pin definitions
-#define TFT_CS   5
-#define TFT_DC   32
-#define TFT_RST  15
+#define TFT_CS  5
+#define TFT_DC  32
+#define TFT_RST 15
 
-int circlex = 80;
-int circley = 64;
 
-// Hardware SPI
+int circlex = 80; int circley = 64; int state = 1; int circlevel = 1;
+
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
+// Small offscreen buffer (fits even on small boards)
+GFXcanvas16 canvas(128, 160);
 
+void check_inbounds(int x, int y) {
+  switch (state) {
+    case 1: // left
+      x--;
+      if (x <= 0) {
+        x++;
+        state = 3;
+      }
+    case 2: // right
+      x++;
+      if (x >= 128) {
+        x--;
+        state = 4;
+      }
+    case 3: // up
+      y--;
+      if (y <= 0) {
+        y++;
+        state = 2;
+      }
+    case 4: // down
+      y++;
+      if (y >= 160) {
+        y--;
+        state = 1;
+      }
+  } 
+  
+}
 void setup() {
-  Serial.begin(115200);
-  pinMode(14, INPUT_PULLDOWN);
-  pinMode(27, INPUT_PULLDOWN);
-  // Initialize SPI explicitly (recommended for ESP32)
-  SPI.begin(18, 19, 23, TFT_CS);
-
-  // Initialize display
-  tft.initR(INITR_BLACKTAB);   // Most common ST7735
-  tft.setRotation(1);
-  tft.fillScreen(ST77XX_BLACK);
-
-  tft.setTextColor(ST77XX_WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(10, 10);
-  tft.println("ESP32 + ST7735");
-  tft.setCursor(1, 80);
-  tft.drawCircle(circlex, circley, 3, ST7735_WHITE);
+    tft.initR(INITR_BLACKTAB);
+    tft.fillScreen(ST77XX_BLACK);
 }
 
 void loop() {
-  tft.fillScreen(ST7735_BLACK);
-  tft.setCursor(0,0);
-  tft.println("ESP32 + ST7735");
-  tft.drawCircle(circlex, circley, 3, ST7735_WHITE);
-  if (digitalRead(14)) {
-    circlex++;
-    Serial.print("dd");
-  }
-  if (digitalRead(27)) {
-    circley++;
-    Serial.print("yy");
-  }
+
+    // Draw everything to RAM first
+    canvas.fillScreen(ST77XX_BLACK);
+    canvas.setTextColor(ST77XX_WHITE);
+    canvas.setTextSize(2);
+    canvas.setCursor(10, 10);
+    canvas.print(circlex);
+    check_inbounds(circlex, circley);
+    canvas.drawCircle(circlex, circley, 3, ST7735_WHITE);
+
+    // Push only that region to display
+    tft.drawRGBBitmap(0, 60, canvas.getBuffer(), 128, 40);
+
+    delay(100);
 }
