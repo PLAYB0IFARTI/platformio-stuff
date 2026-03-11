@@ -45,23 +45,23 @@ void check_inbounds(int x, int y) {
   
 }
 void setup() {
-    tft.initR(INITR_BLACKTAB);
-    tft.fillScreen(ST77XX_BLACK);
+  tft.initR(INITR_REDTAB);
+  // tft.fillScreen(ST77XX_BLACK);
+  canvas.setTextColor(ST77XX_WHITE);
 }
 
+int nd = 0;
 void loop() {
+  // Draw everything to RAM first
+  canvas.drawRect(0, 0, 128, 160, ST7735_BLACK);
+  canvas.setTextSize(2);
+  canvas.setCursor(nd, 10);
+  canvas.print(nd);
+  nd++;
+  canvas.drawCircle(circlex, circley, 3, ST7735_WHITE);
 
-    // Draw everything to RAM first
-    canvas.fillScreen(ST77XX_BLACK);
-    canvas.setTextColor(ST77XX_WHITE);
-    canvas.setTextSize(2);
-    canvas.setCursor(10, 10);
-    canvas.print(circlex);
-    check_inbounds(circlex, circley);
-    canvas.drawCircle(circlex, circley, 3, ST7735_WHITE);
+  // Push only that region to display
+  tft.drawRGBBitmap(0, 0, canvas.getBuffer(), 128, 160);
 
-    // Push only that region to display
-    tft.drawRGBBitmap(0, 60, canvas.getBuffer(), 128, 40);
-
-    delay(100);
+  delay(500); 
 }
